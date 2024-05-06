@@ -1,9 +1,23 @@
-import { Hono } from "hono";
+import { Hono, Next } from "hono";
+import { Context } from "hono/jsx";
 
 const app = new Hono();
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
+async function authMiddleWare(c: any, next: any) {
+  if (c.req.header("Authorization")) {
+    await next();
+  } else {
+    return c.text("You don't have access");
+  }
+}
+
+app.get("/", authMiddleWare, async (c) => {
+  const body = await c.req.parseBody();
+  console.log(body);
+  console.log(c.req.header("Authorization"));
+  console.log(c.req.query("param"));
+
+  return c.json({ msg: "You got access" });
 });
 
 export default app;
